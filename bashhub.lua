@@ -6,6 +6,16 @@ local VIM = game:GetService("VirtualInputManager")
 -- detectar móvil
 local isMobile = UIS.TouchEnabled
 
+-- random timing
+math.randomseed(tick())
+local function rand(a,b)
+    return a + math.random()*(b-a)
+end
+
+-- anti spam
+local lastDash = 0
+local dashCooldown = 0.12
+
 -- GUI
 local gui = Instance.new("ScreenGui")
 gui.Parent = player.PlayerGui
@@ -20,7 +30,7 @@ logo.BackgroundColor3 = Color3.fromRGB(20,20,20)
 logo.TextColor3 = Color3.new(1,1,1)
 logo.Parent = gui
 
--- FRAME PRINCIPAL
+-- FRAME
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0,220,0,200)
 frame.Position = UDim2.new(0.4,0,0.3,0)
@@ -28,7 +38,7 @@ frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
 frame.Visible = false
 frame.Parent = gui
 
--- BOTON ON OFF
+-- TOGGLE
 local toggle = Instance.new("TextButton")
 toggle.Size = UDim2.new(0,180,0,35)
 toggle.Position = UDim2.new(0,20,0,10)
@@ -36,7 +46,7 @@ toggle.Text = "OFF"
 toggle.BackgroundColor3 = Color3.fromRGB(255,60,60)
 toggle.Parent = frame
 
--- SKILL BOTONES
+-- SKILLS
 local skill1 = Instance.new("TextButton")
 skill1.Size = UDim2.new(0,80,0,35)
 skill1.Position = UDim2.new(0,20,0,60)
@@ -61,7 +71,7 @@ skill4.Position = UDim2.new(0,120,0,110)
 skill4.Text = "Skill 4"
 skill4.Parent = frame
 
--- BOTON PUÑO MOVIL
+-- PUÑO MOVIL
 local punch = Instance.new("TextButton")
 punch.Size = UDim2.new(0,70,0,70)
 punch.Position = UDim2.new(1,-90,1,-120)
@@ -73,79 +83,82 @@ punch.Parent = gui
 
 local enabled = false
 
--- ABRIR UI
+-- abrir UI
 logo.MouseButton1Click:Connect(function()
-    frame.Visible = not frame.Visible
+frame.Visible = not frame.Visible
 end)
 
--- TOGGLE
+-- toggle
 toggle.MouseButton1Click:Connect(function()
 
-    enabled = not enabled
+enabled = not enabled
 
-    if enabled then
-        toggle.Text = "ON"
-        toggle.BackgroundColor3 = Color3.fromRGB(60,255,60)
+if enabled then
+toggle.Text = "ON"
+toggle.BackgroundColor3 = Color3.fromRGB(60,255,60)
 
-        if isMobile then
-            punch.Visible = true
-        end
+if isMobile then
+punch.Visible = true
+end
 
-    else
-        toggle.Text = "OFF"
-        toggle.BackgroundColor3 = Color3.fromRGB(255,60,60)
+else
+toggle.Text = "OFF"
+toggle.BackgroundColor3 = Color3.fromRGB(255,60,60)
 
-        punch.Visible = false
-    end
+punch.Visible = false
+end
 
 end)
 
--- DASH CANCEL
+-- DASH CANCEL MEJORADO
 local function DashCancel()
 
-    task.wait(0.04)
+if tick() - lastDash < dashCooldown then return end
+lastDash = tick()
 
-    VIM:SendKeyEvent(true,Enum.KeyCode.S,false,game)
-    task.wait(0.02)
+task.wait(rand(0.035,0.05))
 
-    VIM:SendKeyEvent(true,Enum.KeyCode.Q,false,game)
-    task.wait(0.02)
-    VIM:SendKeyEvent(false,Enum.KeyCode.Q,false,game)
+VIM:SendKeyEvent(true,Enum.KeyCode.S,false,game)
+task.wait(rand(0.015,0.025))
 
-    task.wait(0.02)
+VIM:SendKeyEvent(true,Enum.KeyCode.Q,false,game)
+task.wait(rand(0.015,0.025))
+VIM:SendKeyEvent(false,Enum.KeyCode.Q,false,game)
 
-    VIM:SendKeyEvent(false,Enum.KeyCode.S,false,game)
+task.wait(rand(0.015,0.025))
+
+VIM:SendKeyEvent(false,Enum.KeyCode.S,false,game)
 
 end
 
--- PC DETECTAR SKILLS
+-- detectar skills pc
 UIS.InputBegan:Connect(function(input,gp)
 
-    if gp then return end
-    if not enabled then return end
+if gp then return end
+if not enabled then return end
 
-    if input.KeyCode == Enum.KeyCode.One
-    or input.KeyCode == Enum.KeyCode.Two
-    or input.KeyCode == Enum.KeyCode.Three
-    or input.KeyCode == Enum.KeyCode.Four then
+if input.KeyCode == Enum.KeyCode.One
+or input.KeyCode == Enum.KeyCode.Two
+or input.KeyCode == Enum.KeyCode.Three
+or input.KeyCode == Enum.KeyCode.Four then
 
-        DashCancel()
+DashCancel()
 
-    end
+end
 
 end)
 
--- FUNCION SKILL
+-- usar skill
 local function UseSkill(key)
 
-    VIM:SendKeyEvent(true,key,false,game)
-    VIM:SendKeyEvent(false,key,false,game)
+VIM:SendKeyEvent(true,key,false,game)
+VIM:SendKeyEvent(false,key,false,game)
 
-    DashCancel()
+DashCancel()
 
 end
 
--- BOTONES SKILL
+-- botones skill
 skill1.MouseButton1Click:Connect(function()
 if enabled then UseSkill(Enum.KeyCode.One) end
 end)
@@ -162,16 +175,14 @@ skill4.MouseButton1Click:Connect(function()
 if enabled then UseSkill(Enum.KeyCode.Four) end
 end)
 
--- BOTON PUÑO MOVIL
+-- puño móvil
 punch.MouseButton1Click:Connect(function()
-
-    if enabled then
-        UseSkill(Enum.KeyCode.One)
-    end
-
+if enabled then
+UseSkill(Enum.KeyCode.One)
+end
 end)
 
--- DRAG UI
+-- drag UI
 local dragging
 local dragStart
 local startPos
@@ -210,9 +221,7 @@ UIS.InputEnded:Connect(function(input)
 
 if input.UserInputType == Enum.UserInputType.MouseButton1
 or input.UserInputType == Enum.UserInputType.Touch then
-
 dragging = false
-
 end
 
 end)
