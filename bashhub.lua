@@ -1,102 +1,136 @@
--- SERVICIOS
-local Players = game:GetService("Players")
+-- evitar duplicado
+if getgenv().BashHubLoaded then return end
+getgenv().BashHubLoaded = true
+
+-- BLOQUEAR EXECUTORS
+pcall(function()
+    if identifyexecutor then
+        local exe = string.lower(identifyexecutor())
+
+        if string.find(exe,"fluxus") or string.find(exe,"hydrogen") then
+            warn("Executor no soportado")
+            return
+        end
+    end
+end)
+
+-- servicios
+local player = game.Players.LocalPlayer
 local UIS = game:GetService("UserInputService")
-local VIM = game:GetService("VirtualInputManager")
 
--- PLAYER SEGURO
-local player = Players.LocalPlayer
-if not player then return end
+local VIM
+pcall(function()
+    VIM = game:GetService("VirtualInputManager")
+end)
 
-local PlayerGui = player:WaitForChild("PlayerGui",10)
-if not PlayerGui then
-warn("PlayerGui no cargó")
-return
+if not VIM then
+    warn("Executor no soporta VirtualInputManager")
+    return
 end
 
--- detectar móvil mejor
-local isMobile = UIS.TouchEnabled and not UIS.KeyboardEnabled
-
--- ANTI DUPLICADO
-if PlayerGui:FindFirstChild("DashCancelUI") then
-PlayerGui:FindFirstChild("DashCancelUI"):Destroy()
-end
+local isMobile = UIS.TouchEnabled
 
 -- GUI
 local gui = Instance.new("ScreenGui")
-gui.Name = "DashCancelUI"
-gui.Parent = PlayerGui
+gui.Name = "BashHub"
+gui.Parent = player.PlayerGui
 gui.ResetOnSpawn = false
 
--- logo
+-- LOGO
 local logo = Instance.new("TextButton")
 logo.Size = UDim2.new(0,50,0,50)
 logo.Position = UDim2.new(0,20,0.5,0)
 logo.Text = "⚡"
-logo.BackgroundColor3 = Color3.fromRGB(20,20,20)
+logo.TextScaled = true
+logo.BackgroundColor3 = Color3.fromRGB(25,25,25)
 logo.TextColor3 = Color3.new(1,1,1)
 logo.Parent = gui
 
--- frame
+Instance.new("UICorner",logo)
+
+-- FRAME
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0,220,0,200)
+frame.Size = UDim2.new(0,240,0,240)
 frame.Position = UDim2.new(0.4,0,0.3,0)
 frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
 frame.Visible = false
 frame.Parent = gui
 
--- toggle
+Instance.new("UICorner",frame)
+
+-- TITULO
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,30)
+title.Text = "BASH HUB"
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.new(1,1,1)
+title.TextScaled = true
+title.Parent = frame
+
+-- TOGGLE
 local toggle = Instance.new("TextButton")
-toggle.Size = UDim2.new(0,180,0,35)
-toggle.Position = UDim2.new(0,20,0,10)
+toggle.Size = UDim2.new(0,200,0,35)
+toggle.Position = UDim2.new(0,20,0,40)
 toggle.Text = "OFF"
 toggle.BackgroundColor3 = Color3.fromRGB(255,60,60)
 toggle.Parent = frame
+Instance.new("UICorner",toggle)
 
--- botones skill
+-- SKILLS
 local skill1 = Instance.new("TextButton")
-skill1.Size = UDim2.new(0,80,0,35)
-skill1.Position = UDim2.new(0,20,0,60)
+skill1.Size = UDim2.new(0,90,0,35)
+skill1.Position = UDim2.new(0,20,0,90)
 skill1.Text = "Skill 1"
+skill1.BackgroundColor3 = Color3.fromRGB(50,50,50)
 skill1.Parent = frame
+Instance.new("UICorner",skill1)
 
-local skill2 = Instance.new("TextButton")
-skill2.Size = UDim2.new(0,80,0,35)
-skill2.Position = UDim2.new(0,120,0,60)
+local skill2 = skill1:Clone()
+skill2.Position = UDim2.new(0,130,0,90)
 skill2.Text = "Skill 2"
 skill2.Parent = frame
 
-local skill3 = Instance.new("TextButton")
-skill3.Size = UDim2.new(0,80,0,35)
-skill3.Position = UDim2.new(0,20,0,110)
+local skill3 = skill1:Clone()
+skill3.Position = UDim2.new(0,20,0,140)
 skill3.Text = "Skill 3"
 skill3.Parent = frame
 
-local skill4 = Instance.new("TextButton")
-skill4.Size = UDim2.new(0,80,0,35)
-skill4.Position = UDim2.new(0,120,0,110)
+local skill4 = skill1:Clone()
+skill4.Position = UDim2.new(0,130,0,140)
 skill4.Text = "Skill 4"
 skill4.Parent = frame
 
--- botón móvil
+-- BOTON KILL
+local kill = Instance.new("TextButton")
+kill.Size = UDim2.new(0,200,0,30)
+kill.Position = UDim2.new(0,20,0,190)
+kill.Text = "KILL SCRIPT"
+kill.BackgroundColor3 = Color3.fromRGB(120,0,0)
+kill.TextColor3 = Color3.new(1,1,1)
+kill.Parent = frame
+Instance.new("UICorner",kill)
+
+-- BOTON MOVIL
 local punch = Instance.new("TextButton")
 punch.Size = UDim2.new(0,70,0,70)
-punch.Position = UDim2.new(1,-90,1,-120)
+punch.Position = UDim2.new(1,-100,1,-120)
 punch.Text = "👊"
 punch.TextScaled = true
 punch.BackgroundColor3 = Color3.fromRGB(40,40,40)
 punch.Visible = false
 punch.Parent = gui
+Instance.new("UICorner",punch)
 
+-- VARIABLES
 local enabled = false
 local selectedSkill = Enum.KeyCode.One
-local debounce = false
 
--- abrir interfaz
+-- ABRIR UI
 logo.MouseButton1Click:Connect(function()
 frame.Visible = not frame.Visible
 end)
 
--- toggle
+-- TOGGLE
 toggle.MouseButton1Click:Connect(function()
 
 enabled = not enabled
@@ -118,43 +152,7 @@ end
 
 end)
 
--- DASH CANCEL MEJORADO
-local function DashCancel()
-
-if debounce then return end
-debounce = true
-
-task.spawn(function()
-
-task.wait(0.03)
-
--- presiona skill seleccionada
-VIM:SendKeyEvent(true,selectedSkill,false,game)
-VIM:SendKeyEvent(false,selectedSkill,false,game)
-
--- dash atrás más largo
-VIM:SendKeyEvent(true,Enum.KeyCode.S,false,game)
-
-task.wait(0.025)
-
--- dash
-VIM:SendKeyEvent(true,Enum.KeyCode.Q,false,game)
-task.wait(0.02)
-VIM:SendKeyEvent(false,Enum.KeyCode.Q,false,game)
-
--- mantener S un poco más para más distancia
-task.wait(0.03)
-
-VIM:SendKeyEvent(false,Enum.KeyCode.S,false,game)
-
-task.wait(0.1)
-debounce = false
-
-end)
-
-end
-
--- seleccionar habilidad
+-- SELECCION SKILL
 local function selectSkill(button,key)
 
 selectedSkill = key
@@ -184,7 +182,29 @@ skill4.MouseButton1Click:Connect(function()
 selectSkill(skill4,Enum.KeyCode.Four)
 end)
 
--- tecla PC
+-- DASH CANCEL
+local function DashCancel()
+
+task.wait(0.025)
+
+VIM:SendKeyEvent(true,selectedSkill,false,game)
+VIM:SendKeyEvent(false,selectedSkill,false,game)
+
+VIM:SendKeyEvent(true,Enum.KeyCode.S,false,game)
+
+task.wait(0.03)
+
+VIM:SendKeyEvent(true,Enum.KeyCode.Q,false,game)
+task.wait(0.02)
+VIM:SendKeyEvent(false,Enum.KeyCode.Q,false,game)
+
+task.wait(0.045)
+
+VIM:SendKeyEvent(false,Enum.KeyCode.S,false,game)
+
+end
+
+-- PC
 UIS.InputBegan:Connect(function(input,gp)
 
 if gp then return end
@@ -196,7 +216,7 @@ end
 
 end)
 
--- móvil
+-- MOVIL
 punch.MouseButton1Click:Connect(function()
 
 if enabled then
@@ -205,46 +225,10 @@ end
 
 end)
 
--- DRAG GUI
-local dragging
-local dragStart
-local startPos
+-- KILL SCRIPT
+kill.MouseButton1Click:Connect(function()
 
-frame.InputBegan:Connect(function(input)
-
-if input.UserInputType == Enum.UserInputType.MouseButton1
-or input.UserInputType == Enum.UserInputType.Touch then
-
-dragging = true
-dragStart = input.Position
-startPos = frame.Position
-
-end
-
-end)
-
-UIS.InputChanged:Connect(function(input)
-
-if dragging then
-
-local delta = input.Position - dragStart
-
-frame.Position = UDim2.new(
-startPos.X.Scale,
-startPos.X.Offset + delta.X,
-startPos.Y.Scale,
-startPos.Y.Offset + delta.Y
-)
-
-end
-
-end)
-
-UIS.InputEnded:Connect(function(input)
-
-if input.UserInputType == Enum.UserInputType.MouseButton1
-or input.UserInputType == Enum.UserInputType.Touch then
-dragging = false
-end
+getgenv().BashHubLoaded = false
+gui:Destroy()
 
 end)
